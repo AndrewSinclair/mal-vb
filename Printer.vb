@@ -1,23 +1,23 @@
-﻿Imports mal_vb.Types
-
-Public Class Printer
-    Public Shared Function PrStr(ByVal form As MalType) As String
-        If TypeOf form Is MalInt Then
-            Return DirectCast(form, MalInt).Value.ToString
-        ElseIf TypeOf form Is MalDbl Then
-            Return DirectCast(form, MalDbl).Value.ToString
-        ElseIf TypeOf form Is MalBool Then
-            Return DirectCast(form, MalBool).Value.ToString
-        ElseIf TypeOf form Is MalNil Then
+﻿Public Class Printer
+    Public Shared Function PrStr(ByVal outputLine As MalType) As String
+        If TypeOf outputLine Is MalInt Then
+            Return DirectCast(outputLine, MalInt).Value.ToString
+        ElseIf TypeOf outputLine Is MalBool Then
+            Return DirectCast(outputLine, MalBool).Value.ToString
+        ElseIf TypeOf outputLine Is MalDbl Then
+            Return DirectCast(outputLine, MalDbl).Value.ToString
+        ElseIf TypeOf outputLine Is MalStr Then
+            Return DirectCast(outputLine, MalStr).Value
+        ElseIf TypeOf outputLine Is MalSymbol Then
+            Return DirectCast(outputLine, MalSymbol).Value
+        ElseIf TypeOf outputLine Is MalKeyword Then
+            Return DirectCast(outputLine, MalKeyword).Value
+        ElseIf TypeOf outputLine Is MalNil Then
             Return "nil"
-        ElseIf TypeOf form Is MalStr Then
-            Return DirectCast(form, MalStr).Value
-        ElseIf TypeOf form Is MalSymbol Then
-            Return DirectCast(form, MalSymbol).Value
-        ElseIf TypeOf form Is MalList Then
-            Return "(" & String.Join(" ", DirectCast(form, MalList).Value.Select(Function(t) PrStr(t)).ToList) & ")"
+        ElseIf TypeOf outputLine Is MalList Then
+            Return "(" & String.Join(" ", (From output In DirectCast(outputLine, MalList).Value Select PrStr(output)).ToList) & ")"
         Else
-            Throw New EvaluateException("MalType not identified in PrStr")
+            Throw New EvaluateException("MalType not recognized")
         End If
     End Function
 End Class
