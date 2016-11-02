@@ -28,16 +28,6 @@
 
         Private ReadOnly _data As New Dictionary(Of MalType, MalType)
 
-        Private ReadOnly Property Data As Dictionary(Of MalType, MalType)
-            Get
-                Return _data
-            End Get
-        End Property
-
-        Public Function [Get](ByVal key As MalType) As MalType
-            Return Data(key)
-        End Function
-
         Public Sub New(ByVal value As List(Of MalType))
             Dim length As Integer = value.Count
 
@@ -47,6 +37,18 @@
                 _data.Add(key, val)
             Next
         End Sub
+
+        Public Function [Get](ByVal key As MalType) As MalType
+            Return _data(key)
+        End Function
+
+        Public Function Count() As Integer
+            Return _data.Count
+        End Function
+
+        Public Function GetKeys() As List(Of MalType)
+            Return _data.Keys.ToList
+        End Function
     End Class
 
     Public Class MalInt
@@ -129,14 +131,14 @@
     Public Class MalFunction
         Inherits MalType
 
-        Public Property Value As Func(Of Integer, Integer, Integer)
+        Public Property Value As Func(Of List(Of MalType), MalType)
 
-        Public Sub New(ByVal value As Func(Of Integer, Integer, Integer))
+        Public Sub New(ByVal value As Func(Of List(Of MalType), MalType))
             Me.Value = value
         End Sub
 
-        Public Function Invoke(ByVal a As Integer, ByVal b As Integer)
-            Return Value.Invoke(a, b)
+        Public Function Invoke(ByVal params As List(Of MalType))
+            Return Value.Invoke(params)
         End Function
     End Class
 End Module

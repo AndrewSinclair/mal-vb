@@ -1,13 +1,4 @@
 ﻿Module Main
-    Public Property ReplEnv As New MalEnvironment
-
-    Sub New()
-        ReplEnv.Env.Add("+", Function(a, b) a + b)
-        ReplEnv.Env.Add("-", Function(a, b) a - b)
-        ReplEnv.Env.Add("*", Function(a, b) a * b)
-        ReplEnv.Env.Add("/", Function(a, b) a / b)
-    End Sub
-
     Public Function Prompt() As String
         Return Prompt(Nothing)
     End Function
@@ -33,8 +24,8 @@
         Dim evaler As New Eval
 
         Dim ast As MalType = Reader.ReadStr(inputLine)
-        Dim evalResult As MalType = evaler.Eval(ast, replEnv)
-        Dim printOutput = Printer.PrStr(evalResult)
+        Dim evalResult As MalType = evaler.Eval(ast, Env)
+        Dim printOutput = Printer.PrStr(evalResult, True)
 
         Return printOutput
     End Function

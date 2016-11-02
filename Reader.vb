@@ -1,4 +1,6 @@
 ﻿Public Class Reader
+    Public Const keywordPrefix As String = ChrW(&H29E)
+
     Private Property Tokens As List(Of Token)
     Private Property Position As Integer
 
@@ -51,6 +53,17 @@
         End If
     End Function
 
+    Private Shared Function StringFix(ByVal str As String) As String
+        Dim fixed As String = str.Replace("\""", """")
+        fixed = fixed.Replace("\n", vbCrLf)
+        fixed = fixed.Replace("\\", "\")
+        Return fixed
+    End Function
+
+    Private Function ReadAtom(ByVal atom As String) As MalType
+        Return New Reader(New List(Of Token)({New Token(atom)})).ReadAtom
+    End Function
+
     Private Function ReadAtom() As MalType
         Dim currToken As Token = Peek()
         Dim valueStr As String = currToken.Value
@@ -61,9 +74,9 @@
         If valueStr.StartsWith("""") AndAlso Not valueStr.EndsWith("""") Then Throw New EvaluateException("Expected "", got EOF.")
 
         If valueStr.StartsWith("""") AndAlso valueStr.EndsWith("""") Then
-            Return New MalStr(valueStr)
+            Return New MalStr(StringFix(valueStr.Substring(1, valueStr.Length - 2)))
         ElseIf valueStr.StartsWith(":") Then
-            Return New MalKeyword(valueStr)
+            Return New MalKeyword(keywordPrefix & valueStr)
         ElseIf Integer.TryParse(valueStr, valueInt) Then
             Return New MalInt(valueInt)
         ElseIf Boolean.TryParse(valueStr, valueBool) Then
@@ -108,9 +121,21 @@
     End Function
 
     Public Shared Function Tokenizer(ByVal inputLine As String) As List(Of Token)
-        Const regexp As String = "[\s ,]*(~@|[\[\]{}()'`~@]|""(?:[\\].|[^\\""])*""|;.*|[^\s \[\]{}()'""`~@,;]*)"
+        Dim tokenList As New List(Of Token)
+        Const pattern As String = "[\s,]*(~@|[\[\]{}()'`~@]|""(?:[\\].|[^\\""])*""|;.*|[^\s \[\]{}()'""`~@,;]*)"
+        Dim regex As New Text.RegularExpressions.Regex(pattern)
 
-        Return Text.RegularExpressions.Regex.Split(inputLine, regexp).Except({""}).Select(Function(t) New Token(t)).ToList
+        For Each match As Text.RegularExpressions.Match In regex.Matches(inputLine)
+            Dim strMatch As String = (match.Groups(1).Value)
+            If strMatch IsNot Nothing _
+               AndAlso strMatch <> "" _
+               AndAlso Not strMatch.StartsWith(";") Then
+
+                tokenList.Add(New Token(strMatch))
+            End If
+        Next
+
+        Return tokenList
     End Function
 
     Public Shared Function ReadStr(ByVal inputLine As String) As MalType
