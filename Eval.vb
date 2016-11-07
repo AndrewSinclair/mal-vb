@@ -1,4 +1,36 @@
 Public Class Eval
+    Private Shared Function IsMacroCall(ByVal ast As MalType, ByVal env As MalEnvironment) As Boolean
+
+        If TypeOf ast Is MalList Then
+            Dim astList As List(Of MalType) = DirectCast(ast, MalList).Value
+
+            If TypeOf astList(0) Is MalSymbol Then
+                Dim headSymbol As MalSymbol = astList(0)
+
+                Dim headVal As MalType = env.Get(headSymbol)
+
+                Return headVal IsNot Nothing AndAlso TypeOf headVal Is MalFunction AndAlso DirectCast(headVal, MalFunction).IsMacro
+            End If
+        End If
+
+        Return False
+    End Function
+
+    Private Shared Function MacroExpand(ByVal ast As MalType, ByVal env As MalEnvironment) As MalType
+        While IsMacroCall(ast, env)
+            Dim astList As List(Of MalType) = DirectCast(ast, MalList).Value
+            Dim headSymbol As MalSymbol = astList(0)
+
+            Dim headVal As MalType = env.Get(headSymbol)
+
+            Dim astTail As List(Of MalType) = astList.GetRange(1, astList.Count - 1)
+
+            ast = DirectCast(headVal, MalFunction).Invoke(astTail)
+        End While
+
+        Return ast
+    End Function
+
     Private Shared Function EvalAst(ByVal ast As MalType, ByVal env As MalEnvironment) As MalType
         If TypeOf ast Is MalSymbol Then
             Return env.Get(ast)
@@ -22,6 +54,14 @@ Public Class Eval
 
                 Dim headSymbol As MalSymbol = TryCast(inputList.Value(0), MalSymbol)
                 If headSymbol IsNot Nothing Then
+                    ast = MacroExpand(ast, env)
+
+                    If TypeOf ast IsNot MalList Then
+                        Return EvalAst(ast, env)
+                    Else
+                        Continue While
+                    End If
+
                     Dim specialForm As String = headSymbol.Value
                     If specialForm = "def!" Then
                         Dim val As MalType = Eval(inputList.Value(2), env)
@@ -71,7 +111,15 @@ Public Class Eval
                     ElseIf specialForm = "quasiquote" Then
                         ast = Quasiquote(inputList.Value(1))
                         Continue While
+                    ElseIf specialForm = "defmacro!" Then
+                        Dim val As MalType = Eval(inputList.Value(2), env)
+                        DirectCast(val, MalFunction).IsMacro = True
+                        env.Set(inputList.Value(1), val)
+                        Return val
+                    ElseIf specialForm = "macroexpand" Then
+                        Return MacroExpand(inputList.Value(1), env)
                     End If
+
                 End If
 
                 Dim evaledList As MalList = EvalAst(inputList, env)

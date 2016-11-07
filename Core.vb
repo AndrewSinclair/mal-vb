@@ -126,6 +126,52 @@
                                                             Return New MalList(lists.Aggregate(Function(xss, xs) xss.Concat(xs)))
                                                         End Function))
 
+        Ns.Add(New MalSymbol("nth"), New MalFunction(Function(inputs)
+                                                         Dim list As List(Of MalType)
+                                                         If TypeOf inputs(0) Is MalList Then
+                                                             list = DirectCast(inputs(0), MalList).Value
+                                                         Else
+                                                             list = DirectCast(inputs(0), MalVector).Value
+                                                         End If
+
+                                                         Dim index As MalInt = inputs(1)
+
+                                                         If index.Value < 0 OrElse index.Value > list.Count Then Throw New EvaluateException("The index was not in the list")
+
+                                                         Return inputs(index.Value)
+                                                     End Function))
+
+        Ns.Add(New MalSymbol("first"), New MalFunction(Function(inputs)
+                                                           Dim list As List(Of MalType)
+                                                           If TypeOf inputs(0) Is MalNil Then
+                                                               Return MalNil.Instance
+                                                           ElseIf TypeOf inputs(0) Is MalList Then
+                                                               list = DirectCast(inputs(0), MalList).Value
+                                                           Else
+                                                               list = DirectCast(inputs(0), MalVector).Value
+                                                           End If
+
+                                                           If list.Count = 0 Then Return MalNil.Instance
+
+                                                           Return list(0)
+                                                       End Function))
+
+        Ns.Add(New MalSymbol("rest"), New MalFunction(Function(inputs)
+                                                          Dim list As List(Of MalType)
+                                                          If TypeOf inputs(0) Is MalNil Then
+                                                              Return MalNil.Instance
+                                                          ElseIf TypeOf inputs(0) Is MalList Then
+                                                              list = DirectCast(inputs(0), MalList).Value
+                                                          Else
+                                                              list = DirectCast(inputs(0), MalVector).Value
+                                                          End If
+
+                                                          Dim count As Integer = list.Count
+
+                                                          If count <= 1 Then Return MalNil.Instance
+
+                                                          Return New MalList(list.GetRange(1, count - 1))
+                                                      End Function))
     End Sub
 
     Private Shared Function RecurEqual(ByVal inputs As List(Of MalType)) As Boolean

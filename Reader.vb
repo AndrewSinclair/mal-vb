@@ -80,7 +80,7 @@
         ElseIf Integer.TryParse(valueStr, valueInt) Then
             Return New MalInt(valueInt)
         ElseIf Boolean.TryParse(valueStr, valueBool) Then
-            Return New MalBool(valueBool)
+            Return If(valueBool, MalBool.True, MalBool.False)
         ElseIf Double.TryParse(valueStr, valueDbl) Then
             Return New MalDbl(valueDbl)
         ElseIf valueStr.Equals("nil") Then

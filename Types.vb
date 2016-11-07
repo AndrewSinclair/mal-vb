@@ -76,7 +76,7 @@ Public Module Types
     Public Class MalBool
         Inherits MalType
 
-        Private Property Value As Boolean
+        Public ReadOnly Property Value As Boolean
 
         Public Shared Property [True] As New MalBool(True)
         Public Shared Property [False] As New MalBool(False)
@@ -155,6 +155,7 @@ Public Module Types
         Inherits MalType
 
         Public Property Value As Func(Of List(Of MalType), MalType)
+        Public Property IsMacro As Boolean = False
 
         Public Sub New(ByVal value As Func(Of List(Of MalType), MalType))
             Me.Value = value
