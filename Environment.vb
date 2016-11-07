@@ -1,11 +1,21 @@
 ﻿Public Module Environment
-    Public Property Env As New MalEnvironment(Nothing)
+    Public Property ReplEnv As New MalEnvironment(Nothing)
 
     Sub New()
-        Env.Set(New MalSymbol("+"), New MalFunction(MalIntAggregate(Function(a, b) a + b)))
-        Env.Set(New MalSymbol("-"), New MalFunction(MalIntAggregate(Function(a, b) a - b)))
-        Env.Set(New MalSymbol("*"), New MalFunction(MalIntAggregate(Function(a, b) a * b)))
-        Env.Set(New MalSymbol("/"), New MalFunction(MalIntAggregate(Function(a, b) a / b)))
+        Dim coreKeys As List(Of MalSymbol) = Core.Ns.Keys.ToList
+
+        For Each key As MalSymbol In coreKeys
+            ReplEnv.Set(key, Core.Ns(key))
+        Next
+
+        Rep("(def! not (fn* [a] (if a false true)))")
+
+        ReplEnv.Set(New MalSymbol("eval"), New MalFunction(Function(inputs)
+                                                               Dim ast As MalType = inputs(0)
+                                                               Return Eval.Eval(ast, ReplEnv)
+                                                           End Function))
+
+        Rep("(def! load-file (fn* [f] (eval (read-string (str \""(do \""(slurp f) \"")\"")))))")
     End Sub
 
     Public Function MalIntAggregate(ByVal f As Func(Of Integer, Integer, Integer), ByVal initial As Integer) As Func(Of List(Of MalType), MalInt)
@@ -30,6 +40,30 @@
 
         Public Sub New(ByVal outer As MalEnvironment)
             Me.Outer = outer
+        End Sub
+
+        Public Sub New(ByVal outer As MalEnvironment, ByVal binds As MalVector, ByVal exprs As MalList)
+            Dim hasVariadicBinding As Boolean = binds.Value.Contains(New MalSymbol("&"))
+            If (hasVariadicBinding AndAlso binds.Value.Count - 1 <> exprs.Value.Count) _
+                OrElse (Not hasVariadicBinding AndAlso binds.Value.Count <> exprs.Value.Count) Then
+                Throw New EvaluateException("Invalid bindings due to uneven arity.")
+            End If
+
+            Me.Outer = outer
+
+            If hasVariadicBinding Then
+                Dim variadicIndex As Integer = binds.Value.IndexOf(New MalSymbol("&"))
+
+                For i = 0 To variadicIndex
+                    [Set](binds.Value(i), exprs.Value(i))
+                Next
+
+                [Set](binds.Value(variadicIndex + 1), New MalList(exprs.Value.GetRange(variadicIndex, exprs.Value.Count)))
+            Else
+                For i = 0 To binds.Value.Count - 1
+                    [Set](binds.Value(i), exprs.Value(i))
+                Next
+            End If
         End Sub
 
         Public Sub [Set](ByVal symbol As MalType, ByVal value As MalType)

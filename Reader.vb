@@ -109,6 +109,10 @@
             Return New MalList(New List(Of MalType)({
                 New MalSymbol("splice-unquote"),
                 ReadForm()}))
+        ElseIf first.Value = "@" Then
+            Return New MalList(New List(Of MalType)({
+                New MalSymbol("deref"),
+                ReadForm()}))
         ElseIf first.Value = "(" Then
             Return ReadList(")")
         ElseIf first.Value = "[" Then
@@ -141,7 +145,7 @@
     Public Shared Function ReadStr(ByVal inputLine As String) As MalType
         Dim tokens As List(Of Token) = Tokenizer(inputLine)
 
-        If tokens.Count = 0 Then Throw New Exception("Comment or blankline")
+        If tokens.Count = 0 Then Throw New NoReadableCodeException("Comment or blankline")
 
         Dim reader As New Reader(tokens)
 

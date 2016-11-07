@@ -65,7 +65,8 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MalEnvironment.vb" />
+    <Compile Include="Core.vb" />
+    <Compile Include="Environment.vb" />
     <Compile Include="Types.vb" />
     <Compile Include="Eval.vb" />
     <Compile Include="Printer.vb" />

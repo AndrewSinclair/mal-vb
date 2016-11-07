@@ -1,4 +1,6 @@
-﻿Public Module Types
+﻿Imports fun_programming
+
+Public Module Types
     Public MustInherit Class MalType
         Public Property Name As String
     End Class
@@ -74,9 +76,12 @@
     Public Class MalBool
         Inherits MalType
 
-        Public Property Value As Boolean
+        Private Property Value As Boolean
 
-        Public Sub New(ByVal value As Boolean)
+        Public Shared Property [True] As New MalBool(True)
+        Public Shared Property [False] As New MalBool(False)
+
+        Private Sub New(ByVal value As Boolean)
             Me.Value = value
         End Sub
     End Class
@@ -99,6 +104,14 @@
         Public Sub New(ByVal value As String)
             Me.Value = value
         End Sub
+
+        Public Overloads Overrides Function Equals(other As Object) As Boolean
+            Return TypeOf other Is MalType AndAlso Me.Value = other.Value
+        End Function
+
+        Public Overloads Overrides Function GetHashCode() As Integer
+            Return Value.GetHashCode
+        End Function
     End Class
 
     Public Class MalKeyword
@@ -107,6 +120,16 @@
         Public Property Value As String
 
         Public Sub New(ByVal value As String)
+            Me.Value = value
+        End Sub
+    End Class
+
+    Public Class MalAtom
+        Inherits MalType
+
+        Public Property Value As MalType
+
+        Public Sub New(ByVal value As MalType)
             Me.Value = value
         End Sub
     End Class
@@ -137,8 +160,24 @@
             Me.Value = value
         End Sub
 
-        Public Function Invoke(ByVal params As List(Of MalType))
+        Public Function Invoke(ByVal params As List(Of MalType)) As MalType
             Return Value.Invoke(params)
         End Function
+    End Class
+
+    Public Class MalTcoHelper
+        Inherits MalType
+
+        Public Property Ast As MalType
+        Public Property Params As MalType
+        Public Property Env As MalEnvironment
+        Public Property Fn As MalFunction
+
+        Public Sub New(ByVal ast As MalType, ByVal params As MalType, ByVal env As MalEnvironment, ByVal fn As MalFunction)
+            Me.Ast = ast
+            Me.Params = params
+            Me.Env = env
+            Me.Fn = fn
+        End Sub
     End Class
 End Module

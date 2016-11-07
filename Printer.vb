@@ -26,6 +26,8 @@
             Return "nil"
         ElseIf TypeOf outputLine Is MalList Then
             Return "(" & String.Join(" ", (From output In DirectCast(outputLine, MalList).Value Select PrStr(output, False)).ToList) & ")"
+        ElseIf TypeOf outputLine Is MalFunction Then
+            Return "#"
         Else
             Throw New EvaluateException("MalType not recognized")
         End If
