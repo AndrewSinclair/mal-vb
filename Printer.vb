@@ -21,13 +21,19 @@
         ElseIf TypeOf outputLine Is MalSymbol Then
             Return DirectCast(outputLine, MalSymbol).Value
         ElseIf TypeOf outputLine Is MalKeyword Then
-            Return DirectCast(outputLine, MalKeyword).Value.Replace(Reader.keywordPrefix, " : ")
+            Return DirectCast(outputLine, MalKeyword).Value.Replace(Reader.keywordPrefix, ":")
         ElseIf TypeOf outputLine Is MalNil Then
             Return "nil"
         ElseIf TypeOf outputLine Is MalList Then
             Return "(" & String.Join(" ", (From output In DirectCast(outputLine, MalList).Value Select PrStr(output, False)).ToList) & ")"
+        ElseIf TypeOf outputLine Is MalVector Then
+            Return "[" & String.Join(" ", (From output In DirectCast(outputLine, MalVector).Value Select PrStr(output, False)).ToList) & "]"
+        ElseIf TypeOf outputLine Is MalHashMap Then
+            Return "{" & String.Join(" ", (From key In DirectCast(outputLine, MalHashMap).GetKeys Let val As MalType = DirectCast(outputLine, MalHashMap).Get(key) Select PrStr(key, False) & " " & PrStr(val, False)).ToList) & "}"
         ElseIf TypeOf outputLine Is MalFunction Then
             Return "#"
+        ElseIf TypeOf outputLine Is MalTcoHelper Then
+            Return "tcohelper"
         Else
             Throw New EvaluateException("MalType not recognized")
         End If

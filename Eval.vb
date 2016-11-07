@@ -7,7 +7,13 @@ Public Class Eval
             If TypeOf astList(0) Is MalSymbol Then
                 Dim headSymbol As MalSymbol = astList(0)
 
-                Dim headVal As MalType = env.Get(headSymbol)
+                Dim headVal As MalType
+
+                Try
+                    headVal = env.Get(headSymbol)
+                Catch
+                    headVal = Nothing
+                End Try
 
                 Return headVal IsNot Nothing AndAlso TypeOf headVal Is MalFunction AndAlso DirectCast(headVal, MalFunction).IsMacro
             End If
@@ -38,6 +44,21 @@ Public Class Eval
             Dim malTypes As List(Of MalType) = DirectCast(ast, MalList).Value.Select(Function(t) Eval(t, env)).ToList
 
             Return New MalList(malTypes)
+        ElseIf TypeOf ast Is MalVector Then
+            Dim malTypes As List(Of MalType) = DirectCast(ast, MalVector).Value.Select(Function(t) Eval(t, env)).ToList
+
+            Return New MalVector(malTypes)
+        ElseIf TypeOf ast Is MalHashMap Then
+            Dim keys As List(Of MalType) = DirectCast(ast, MalHashMap).GetKeys.Select(Function(t) Eval(t, env)).ToList
+            Dim pairs As New List(Of MalType)
+
+            For Each key As MalType In keys
+                Dim val = Eval(DirectCast(ast, MalHashMap).Get(key), env)
+                pairs.Add(key)
+                pairs.Add(val)
+            Next
+
+            Return New MalHashMap(pairs)
         Else
             Return ast
         End If
@@ -57,8 +78,7 @@ Public Class Eval
                     ast = MacroExpand(ast, env)
 
                     If TypeOf ast IsNot MalList Then
-                        Return EvalAst(ast, env)
-                    Else
+                        ast = EvalAst(ast, env)
                         Continue While
                     End If
 
@@ -122,7 +142,7 @@ Public Class Eval
 
                 End If
 
-                Dim evaledList As MalList = EvalAst(inputList, env)
+                Dim evaledList As MalList = EvalAst(ast, env)
 
                 Dim head As MalType = evaledList.Value(0)
                 Dim length As Integer = evaledList.Value.Count

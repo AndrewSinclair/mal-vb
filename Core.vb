@@ -1,7 +1,8 @@
 ﻿Public Class Core
     Public Shared Property Ns As Dictionary(Of MalSymbol, MalFunction)
 
-    Sub New()
+    Public Shared Sub InitLoad()
+        Ns = New Dictionary(Of MalSymbol, MalFunction)
         Ns.Add(New MalSymbol("+"), New MalFunction(MalIntAggregate(Function(a, b) a + b)))
         Ns.Add(New MalSymbol("-"), New MalFunction(MalIntAggregate(Function(a, b) a - b)))
         Ns.Add(New MalSymbol("*"), New MalFunction(MalIntAggregate(Function(a, b) a * b)))
@@ -199,6 +200,22 @@
         End If
 
         Return first.GetType.Equals(second.GetType) AndAlso first.Equals(second)
+    End Function
+
+    Public Shared Function MalIntAggregate(ByVal f As Func(Of Integer, Integer, Integer), ByVal initial As Integer) As Func(Of List(Of MalType), MalInt)
+        Return Function(xs As List(Of MalType)) New MalInt(xs.Select(Function(t) DirectCast(t, MalInt).Value).Aggregate(initial, f))
+    End Function
+
+    Public Shared Function MalIntAggregate(ByVal f As Func(Of Integer, Integer, Integer)) As Func(Of List(Of MalType), MalInt)
+        Return Function(xs As List(Of MalType)) New MalInt(xs.Select(Function(t) DirectCast(t, MalInt).Value).Aggregate(f))
+    End Function
+
+    Public Shared Function MalDblAggregate(ByVal f As Func(Of Double, Double, Double), ByVal initial As Double) As Func(Of List(Of MalType), MalDbl)
+        Return Function(xs As List(Of MalType)) New MalDbl(xs.Select(Function(t) DirectCast(t, MalDbl).Value).Aggregate(initial, f))
+    End Function
+
+    Public Shared Function MalDblAggregate(ByVal f As Func(Of Double, Double, Double)) As Func(Of List(Of MalType), MalDbl)
+        Return Function(xs As List(Of MalType)) New MalDbl(xs.Select(Function(t) DirectCast(t, MalDbl).Value).Aggregate(f))
     End Function
 
 End Class

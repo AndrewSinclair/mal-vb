@@ -33,7 +33,7 @@ Public Module Types
         Public Sub New(ByVal value As List(Of MalType))
             Dim length As Integer = value.Count
 
-            For i = 0 To length Step 2
+            For i = 0 To length - 1 Step 2
                 Dim key As MalType = value(i)
                 Dim val As MalType = value(i + 1)
                 _data.Add(key, val)

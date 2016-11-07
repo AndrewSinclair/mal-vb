@@ -76,7 +76,7 @@
         If valueStr.StartsWith("""") AndAlso valueStr.EndsWith("""") Then
             Return New MalStr(StringFix(valueStr.Substring(1, valueStr.Length - 2)))
         ElseIf valueStr.StartsWith(":") Then
-            Return New MalKeyword(keywordPrefix & valueStr)
+            Return New MalKeyword(valueStr.Replace(":", keywordPrefix))
         ElseIf Integer.TryParse(valueStr, valueInt) Then
             Return New MalInt(valueInt)
         ElseIf Boolean.TryParse(valueStr, valueBool) Then

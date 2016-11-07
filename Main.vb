@@ -1,4 +1,9 @@
 ﻿Module Main
+    Public Sub InitModules()
+        Core.InitLoad()
+        Environment.InitLoad()
+    End Sub
+
     Public Function Prompt() As String
         Return Prompt(Nothing)
     End Function
@@ -22,7 +27,7 @@
 
     Public Function Rep(ByVal inputLine As String) As String
         Dim ast As MalType = Reader.ReadStr(inputLine)
-        Dim evalResult As MalType = Eval.Eval(ast, ReplEnv)
+        Dim evalResult As MalType = Eval.Eval(ast, Environment.ReplEnv)
         Dim printOutput = Printer.PrStr(evalResult, True)
 
         Return printOutput
@@ -33,10 +38,12 @@
         Dim isRunOnce As Boolean = False
         Dim isExitEncountered As Boolean = False
 
+        InitModules()
+
         If args IsNot Nothing AndAlso args.Count > 0 Then
             inputLine = String.Format("(load-file {0})", args(0))
 
-            ReplEnv.Set(New MalSymbol("*ARGV*"), New MalList(args.ToList.GetRange(1, args.Count - 1).Select(Function(t) Reader.ReadStr(t))))
+            Environment.ReplEnv.Set(New MalSymbol("*ARGV*"), New MalList(args.ToList.GetRange(1, args.Count - 1).Select(Function(t) Reader.ReadStr(t))))
 
             isRunOnce = True
         Else
